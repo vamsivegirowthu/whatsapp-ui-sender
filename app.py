@@ -8,7 +8,10 @@ app = Flask(__name__)
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
 auth_token = os.getenv("TWILIO_AUTH_TOKEN")
 
-client = Client(account_sid, auth_token)
+# Create Twilio client only if credentials exist
+client = None
+if account_sid and auth_token:
+    client = Client(account_sid, auth_token)
 
 # Image options
 images = {
@@ -26,10 +29,16 @@ def home():
 @app.route("/send", methods=["POST"])
 def send():
 
-    phones = request.form["phones"]
-    selected_image = request.form["image"]
+    phones = request.form.get("phones")
+    selected_image = request.form.get("image")
 
-    image_url = images[selected_image]
+    if not phones or not selected_image:
+        return "Missing phone numbers or image selection"
+
+    image_url = images.get(selected_image)
+
+    if not image_url:
+        return "Invalid image selected"
 
     phone_list = phones.split(",")
 
@@ -46,5 +55,5 @@ def send():
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
