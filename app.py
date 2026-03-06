@@ -17,30 +17,25 @@ images = {
 
 @app.route("/")
 def home():
-    try:
-        return render_template("index.html")
-    except Exception as e:
-        return f"Template Error: {str(e)}"
-
+    return render_template("index.html")
 
 @app.route("/send", methods=["POST"])
 def send():
-    try:
 
-        phones = request.form.get("phones")
-        selected_image = request.form.get("image")
+    phones = request.form.get("phones")
+    selected_image = request.form.get("image")
 
-        if not phones or not selected_image:
-            return "Please enter phone numbers and select image."
+    if not phones or not selected_image:
+        return "Please enter phone numbers and select image."
 
-        image_url = images[selected_image]
+    image_url = images.get(selected_image)
 
-        phone_list = phones.split(",")
+    phone_list = phones.split(",")
 
-        for phone in phone_list:
+    for phone in phone_list:
+        phone = phone.strip()
 
-            phone = phone.strip()
-
+        if phone:
             client.messages.create(
                 from_="whatsapp:+14155238886",
                 body="Image from UI",
@@ -48,9 +43,8 @@ def send():
                 to="whatsapp:" + phone
             )
 
-        return "Messages Sent Successfully!"
+    return "Messages Sent Successfully!"
 
-    except Exception as e:
-        return f"ERROR: {str(e)}"
-
-
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
