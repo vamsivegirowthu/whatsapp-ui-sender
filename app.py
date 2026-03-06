@@ -4,9 +4,9 @@ from twilio.rest import Client
 
 app = Flask(__name__)
 
-# Twilio credentials
-account_sid = os.getenv("TWILIO_ACCOUNT_SID")
-auth_token = os.getenv("TWILIO_AUTH_TOKEN")
+# Twilio credentials from Railway
+account_sid = os.environ.get("TWILIO_ACCOUNT_SID")
+auth_token = os.environ.get("TWILIO_AUTH_TOKEN")
 
 client = Client(account_sid, auth_token)
 
@@ -29,23 +29,26 @@ def send():
     selected_image = request.form.get("image")
 
     if not phones or not selected_image:
-        return "Please enter phone numbers and select an image."
+        return "Please enter phone numbers and select image."
 
     image_url = images.get(selected_image)
 
     phone_list = phones.split(",")
 
     for phone in phone_list:
-        client.messages.create(
-            from_="whatsapp:+14155238886",
-            body="Image from UI",
-            media_url=[image_url],
-            to="whatsapp:" + phone.strip()
-        )
+        phone = phone.strip()
+
+        if phone:
+            client.messages.create(
+                from_="whatsapp:+14155238886",
+                body="Image from UI",
+                media_url=[image_url],
+                to="whatsapp:" + phone
+            )
 
     return "Messages Sent Successfully!"
 
 
+# IMPORTANT for Railway
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run()
