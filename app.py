@@ -4,7 +4,6 @@ from twilio.rest import Client
 
 app = Flask(__name__)
 
-# Twilio credentials from Railway
 account_sid = os.environ.get("TWILIO_ACCOUNT_SID")
 auth_token = os.environ.get("TWILIO_AUTH_TOKEN")
 
@@ -16,29 +15,32 @@ images = {
     "3": "https://images.unsplash.com/photo-1546182990-dffeafbe841d"
 }
 
-
 @app.route("/")
 def home():
-    return render_template("index.html")
+    try:
+        return render_template("index.html")
+    except Exception as e:
+        return f"Template Error: {str(e)}"
 
 
 @app.route("/send", methods=["POST"])
 def send():
+    try:
 
-    phones = request.form.get("phones")
-    selected_image = request.form.get("image")
+        phones = request.form.get("phones")
+        selected_image = request.form.get("image")
 
-    if not phones or not selected_image:
-        return "Please enter phone numbers and select image."
+        if not phones or not selected_image:
+            return "Please enter phone numbers and select image."
 
-    image_url = images.get(selected_image)
+        image_url = images[selected_image]
 
-    phone_list = phones.split(",")
+        phone_list = phones.split(",")
 
-    for phone in phone_list:
-        phone = phone.strip()
+        for phone in phone_list:
 
-        if phone:
+            phone = phone.strip()
+
             client.messages.create(
                 from_="whatsapp:+14155238886",
                 body="Image from UI",
@@ -46,9 +48,7 @@ def send():
                 to="whatsapp:" + phone
             )
 
-    return "Messages Sent Successfully!"
+        return "Messages Sent Successfully!"
 
-
-# IMPORTANT for Railway
-if __name__ == "__main__":
-    app.run()
+    except Exception as e:
+        return f"ERROR: {str(e)}"
